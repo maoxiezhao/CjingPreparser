@@ -1,0 +1,12 @@
+{
+    "class": [
+        {
+            "attributes": [
+                "[[LUA_BINDER_REGIST]]",
+                "[[description(\"Jolly\")]]"
+            ],
+            "class": "",
+            "name": "TransformComponent"
+        }
+    ]
+}

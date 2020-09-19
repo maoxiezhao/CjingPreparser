@@ -1,0 +1,6 @@
+{
+    "filter_class" : "LUA_BINDER_REGIST",
+    "filter_constructor" : "LUA_BINDER_REGIST",
+    "filter_function" : "LUA_BINDER_REGIST",
+    "filter_variable" : "LUA_BINDER_REGIST"
+}

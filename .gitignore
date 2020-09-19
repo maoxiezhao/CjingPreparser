@@ -1,0 +1,13 @@
+
+.vs
+bin
+CjingPreParser.sln
+antlr4_runtime/Temp
+antlr4_runtime/Antlr4cpp.vcxproj
+antlr4_runtime/Antlr4cpp.vcxproj.filters
+antlr4_runtime/Antlr4cpp.vcxproj.user
+preparser/Temp
+preparser/PreParser.vcxproj
+preparser/PreParser.vcxproj.filters
+preparser/PreParser.vcxproj.user
+
