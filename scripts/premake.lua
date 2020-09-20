@@ -48,7 +48,7 @@ end)
 solution (SOLUTION_NAME)
     location ".."
     systemversion "latest"
-    cppdialect "C++14"
+    cppdialect "C++17"
     language "C++"
     platforms "x64"
     configurations {"Debug","Release"}
@@ -78,7 +78,7 @@ project (ANTLR_NAME)
     objdir(ANTLR_DIR .. TARGET_OBJ_DIR)
     targetname(ANTLR_NAME)
     defines { "ANTLR4CPP_EXPORTS" }
-    disablewarnings { 4251 }
+    disablewarnings { 4251, 4996 }
     kind "SharedLib"
 
     -- Files
@@ -114,7 +114,7 @@ project (PARSER_NAME)
     targetname(PARSER_NAME)
     dependson { ANTLR_NAME }
     links { ANTLR_NAME }
-    disablewarnings { 4251 }
+    disablewarnings { 4251, 4996 }
     kind "ConsoleApp"
     staticruntime "Off"
     
@@ -142,6 +142,7 @@ project (PARSER_NAME)
     filter {"configurations:Debug"}
         targetdir (TARGET_DIR_DEBUG)
         debugdir (TARGET_DIR_DEBUG)
+        defines { "DEBUG_ENABLE" }
 
 
     -- Release config

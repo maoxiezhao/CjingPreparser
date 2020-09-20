@@ -1,6 +1,5 @@
 
 #include <iostream>
-#include <Windows.h>
 
 #include "helper.h"
 #include "startupArguments.h"
@@ -8,6 +7,16 @@
 
 int main(int argc, const char* argv[])
 {
+#ifdef DEBUG_ENABLE
+	// Test
+	const std::string inputFile = "test.h";
+	const std::string filterFile = "filter.json";
+	FilterParser parser;
+	if (parser.Parse(inputFile, filterFile))
+	{
+		parser.Generate("", "");
+	}
+#else
 	StartupArguments arguments;
 	arguments.Parse(argc, argv);
 
@@ -20,16 +29,7 @@ int main(int argc, const char* argv[])
 			parser.Generate(arguments.GetOutputDir(), arguments.GetOuputName());
 		}
 	}
-
-	// Test
-	const std::string inputFile = "test.h";
-	const std::string filterFile = "filter.json";
-	FilterParser parser;
-	if (parser.Parse(inputFile, filterFile))
-	{
-		parser.Generate("", "generate.json");
-	}
-
+#endif
 
 	return 0;
 }

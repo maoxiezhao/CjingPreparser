@@ -1,27 +1,6 @@
 #include "filterParserVisitor.h"
 #include "filterParser.h"
 
-namespace {
-	void ProcessAttribute(BaseMetaInfo& info, CPP14Parser::AttributeSpecifierSeqContext* ctx)
-	{
-		if (ctx == nullptr) {
-			return;
-		}
-
-		for (auto attribute : ctx->attributeSpecifier())
-		{
-			if (attribute != nullptr) 
-			{
-				auto attributeString = attribute->getText();
-				if (attributeString.length() > 4) {
-					attributeString = attributeString.substr(2, attributeString.length() - 4);
-				}
-				info.mAttributes.push_back(attributeString);
-			}
-		}
-	}
-}
-
 FilterParserVisitor::FilterParserVisitor(FilterParser& parser) :
 	mParser(parser)
 {
@@ -97,113 +76,142 @@ antlrcpp::Any FilterParserVisitor::visitMemberdeclaration(CPP14Parser::Memberdec
 		return nullptr;
 	}
 
-	if (ctx->memberDeclaratorList() == nullptr) {
-		return nullptr;
+	if (ctx->functionDefinition() != nullptr)
+	{
+		ProcessMemberDeclaratorContext(
+			ctx->functionDefinition()->declarator(), 
+			ctx->functionDefinition()->declSpecifierSeq(),
+			ctx->functionDefinition()->attributeSpecifierSeq());
 	}
-
-	auto declSeq = ctx->declSpecifierSeq();
-	if (declSeq == nullptr) 
+	else if (ctx->memberDeclaratorList() != nullptr)
 	{
 		auto declartorContexts = ctx->memberDeclaratorList()->memberDeclarator();
 		for (auto declartorContext : declartorContexts)
 		{
-			auto decl = declartorContext->declarator();
-			auto declString = decl->getText();
-			if (declString.find("(") != std::string::npos)
+			ProcessMemberDeclaratorContext(
+				declartorContext->declarator(), 
+				ctx->declSpecifierSeq(),
+				ctx->attributeSpecifierSeq());
+		}
+	}
+	return nullptr;
+}
+
+void FilterParserVisitor::ProcessMemberDeclaratorContext(
+	CPP14Parser::DeclaratorContext* ctx, 
+	CPP14Parser::DeclSpecifierSeqContext* declSeq,
+	CPP14Parser::AttributeSpecifierSeqContext* attributeCtx)
+{
+	if (ctx == nullptr) {
+		return;
+	}
+
+	if (declSeq == nullptr)
+	{
+		// 如果没有类型声明，则仅考虑是否是构造函数
+		auto declString = ctx->getText();
+		if (declString.find("(") != std::string::npos)
+		{
+			if (declString[0] != '~')
 			{
-				if (declString[0] != '~')
-				{
-					FunctionMetaInfo functionMetaInfo;
-					ProcessAttribute(functionMetaInfo, ctx->attributeSpecifierSeq());
-					if (!CheckMetaValid(functionMetaInfo, MetaType_Constructor)) {
-						continue;
-					}
-
-					ProcessFunction(functionMetaInfo, decl, nullptr);
-
-					functionMetaInfo.mClassName = mCurrentClassMeta->mName;
-					mCurrentClassMeta->mConstructors.push_back(functionMetaInfo);
+				// constructor
+				FunctionMetaInfo functionMetaInfo;
+				ProcessAttribute(functionMetaInfo, attributeCtx);
+				if (!CheckMetaValid(functionMetaInfo, MetaType_Constructor)) {
+					return;
 				}
+
+				ProcessMemberFunction(functionMetaInfo, ctx, nullptr);
+
+				functionMetaInfo.mClassName = mCurrentClassMeta->mName;
+				mCurrentClassMeta->mConstructors.push_back(functionMetaInfo);
 			}
 		}
 	}
 	else
 	{
-		auto declartorContexts = ctx->memberDeclaratorList()->memberDeclarator();
-		for (auto declartorContext : declartorContexts)
+		auto declString = ctx->getText();
+		if (declString.find("(") != std::string::npos)
 		{
-			auto decl = declartorContext->declarator();
-			// TEMP: check is function
-			if (decl->getText().find("(") != std::string::npos)
-			{
-				// function
-				FunctionMetaInfo functionMetaInfo;
-				ProcessAttribute(functionMetaInfo, ctx->attributeSpecifierSeq());
-				if (!CheckMetaValid(functionMetaInfo, MetaType_Function)) {
-					continue;
-				}
-
-				ProcessFunction(functionMetaInfo, decl, declSeq);
-				
-				functionMetaInfo.mClassName = mCurrentClassMeta->mName;
-				mCurrentClassMeta->mMemberFunctions.push_back(functionMetaInfo);
-			}
-			else
-			{
-				// variable
-				VariableMetaInfo variableMetaInfo;
-				ProcessAttribute(variableMetaInfo, ctx->attributeSpecifierSeq());
-				if (!CheckMetaValid(variableMetaInfo, MetaType_Varibales)) {
-					continue;
-				}
-
-				ProcessVariable(variableMetaInfo, decl, declSeq);
-
-				variableMetaInfo.mClassName = mCurrentClassMeta->mName;
-				mCurrentClassMeta->mMemberVariables.push_back(variableMetaInfo);
-			}
-		}
-	}
-
-	return visitChildren(ctx);
-}
-
-void FilterParserVisitor::ProcessFunction(FunctionMetaInfo& info, CPP14Parser::DeclaratorContext* ctx, CPP14Parser::DeclSpecifierSeqContext* declSeq)
-{
-	if (ctx != nullptr)
-	{
-		auto decl = ctx->pointerDeclarator()->noPointerDeclarator();
-		if (decl == nullptr) {
-			return;
-		}
-
-		info.mName = decl->noPointerDeclarator()->getText();
-
-		auto params = decl->parametersAndQualifiers();
-		if (params != nullptr)
-		{
-			auto paramDeclClasu = params->parameterDeclarationClause();
-			if (paramDeclClasu == nullptr) {
+			// function
+			FunctionMetaInfo functionMetaInfo;
+			ProcessAttribute(functionMetaInfo, attributeCtx);
+			if (!CheckMetaValid(functionMetaInfo, MetaType_Function)) {
 				return;
 			}
 
-			auto paramDeclList = paramDeclClasu->parameterDeclarationList();
-			for (auto paramDecl : paramDeclList->parameterDeclaration())
+			ProcessMemberFunction(functionMetaInfo, ctx, declSeq);
+
+			functionMetaInfo.mClassName = mCurrentClassMeta->mName;
+			mCurrentClassMeta->mMemberFunctions.push_back(functionMetaInfo);
+		}
+		else
+		{
+			// variable
+			VariableMetaInfo variableMetaInfo;
+			ProcessAttribute(variableMetaInfo, attributeCtx);
+			if (!CheckMetaValid(variableMetaInfo, MetaType_Varibales)) {
+				return;
+			}
+
+			ProcessMemberVariable(variableMetaInfo, ctx, declSeq);
+
+			variableMetaInfo.mClassName = mCurrentClassMeta->mName;
+			mCurrentClassMeta->mMemberVariables.push_back(variableMetaInfo);
+		}
+	}
+}
+
+void FilterParserVisitor::ProcessAttribute(BaseMetaInfo& info, CPP14Parser::AttributeSpecifierSeqContext* ctx)
+{
+	if (ctx == nullptr) {
+		return;
+	}
+
+	for (auto attribute : ctx->attributeSpecifier())
+	{
+		if (attribute != nullptr)
+		{
+			auto attributeString = attribute->getText();
+			if (attributeString.length() > 4) {
+				attributeString = attributeString.substr(2, attributeString.length() - 4);
+			}
+			info.mAttributes.push_back(attributeString);
+		}
+	}
+}
+
+void FilterParserVisitor::ProcessMemberFunction(FunctionMetaInfo& info, CPP14Parser::DeclaratorContext* ctx, CPP14Parser::DeclSpecifierSeqContext* declSeq)
+{
+	if (ctx != nullptr)
+	{
+		auto pointerDecl = ctx->pointerDeclarator();
+		auto noPointerDecl = pointerDecl->noPointerDeclarator();
+
+		if (noPointerDecl != nullptr) {
+			info.mName = noPointerDecl->noPointerDeclarator()->getText();
+		}
+
+		auto params = noPointerDecl->parametersAndQualifiers();
+		if (params != nullptr)
+		{
+			auto paramDeclClasu = params->parameterDeclarationClause();
+			if (paramDeclClasu != nullptr) 
 			{
-				auto declSeq = paramDecl->declSpecifierSeq()->declSpecifier();
-				if (declSeq.size() <= 0) {
-					continue;
+				auto paramDeclList = paramDeclClasu->parameterDeclarationList();
+				for (auto paramDecl : paramDeclList->parameterDeclaration())
+				{
+					VariableMetaInfo paramMetaInfo;
+					ProcessMemberVariable(paramMetaInfo, paramDecl->declarator(), paramDecl->declSpecifierSeq());
+					info.mParamTypes.push_back(paramMetaInfo);
 				}
+			}
 
-				VariableMetaInfo paramMetaInfo;
-				paramMetaInfo.mType = declSeq[0]->getText();
-				paramMetaInfo.mName = declSeq.size() > 1 ? declSeq[1]->getText() : "";
-
-				info.mParamTypes.push_back(paramMetaInfo);
+			if (params->cvqualifierseq() != nullptr) {
+				info.mIsConst = true;
 			}
 		}
 	}
-
 	if (declSeq != nullptr)
 	{
 		for (auto decl : declSeq->declSpecifier())
@@ -211,7 +219,7 @@ void FilterParserVisitor::ProcessFunction(FunctionMetaInfo& info, CPP14Parser::D
 			auto declString = decl->getText();
 			if (declString == "const")
 			{
-				info.mIsConst = true;
+				info.mIsRetConst = true;
 			}
 			else if (declString == "static")
 			{
@@ -229,12 +237,26 @@ void FilterParserVisitor::ProcessFunction(FunctionMetaInfo& info, CPP14Parser::D
 	}
 }
 
-void FilterParserVisitor::ProcessVariable(VariableMetaInfo& info, CPP14Parser::DeclaratorContext* ctx, CPP14Parser::DeclSpecifierSeqContext* declSeq)
+void FilterParserVisitor::ProcessMemberVariable(VariableMetaInfo& info, CPP14Parser::DeclaratorContext* ctx, CPP14Parser::DeclSpecifierSeqContext* declSeq)
 {
 	if (ctx != nullptr) {
-		info.mName = ctx->getText();
+		auto noPointerDecl = ctx->noPointerDeclarator();
+		if (noPointerDecl != nullptr)
+		{
+			info.mName = noPointerDecl->getText();
+		}
+		else
+		{
+			auto pointerDecl = ctx->pointerDeclarator();
+			if (pointerDecl != nullptr)
+			{
+				info.mName = pointerDecl->noPointerDeclarator()->getText();
+				if (pointerDecl->pointerOperator().size() > 0) {
+					info.mIsPointer = true;
+				}
+			}
+		}
 	}
-
 	if (declSeq != nullptr)
 	{
 		for (auto decl : declSeq->declSpecifier())
@@ -250,7 +272,14 @@ void FilterParserVisitor::ProcessVariable(VariableMetaInfo& info, CPP14Parser::D
 			}
 			else
 			{
-				info.mType = declString;
+				if (info.mType.empty())
+				{
+					info.mType = declString;
+				}
+				else if (info.mName.empty())
+				{
+					info.mName = declString;
+				}
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 #include "helper.h"
 
 #include <fstream>
+#include <filesystem>
 
 bool Helper::FileRead(const std::string& fileName, U8* data, size_t& size)
 {
@@ -65,6 +66,13 @@ std::string Helper::CombinePath(const std::string& path1, const std::string& pat
 	if (path2.empty()) {
 		return path1;
 	}
-	std::string retPath = path1 + "\\" + path2;
-	return retPath;
+
+	std::filesystem::path path(path1);
+	return path.append(path2).string();
+}
+
+std::string Helper::RemoveExtension(const std::string& path)
+{
+	std::filesystem::path filePath(path);
+	return filePath.replace_extension().string();
 }

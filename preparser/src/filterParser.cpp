@@ -6,8 +6,6 @@
 #include "CPP14Parser.h"
 #include "CPP14ParserBaseVisitor.h"
 
-#include <filesystem>
-
 using namespace antlrcpptest;
 using namespace antlr4;
 
@@ -15,23 +13,79 @@ namespace {
 	void WriteBaseMetaInfo(const BaseMetaInfo& info, JsonArchive& archive)
 	{
 		archive.Write("name", info.mName);
-		archive.PushMap("attributes", [&info] (JsonArchive& archive) {
+		archive.PushMap("attributes", [&info](JsonArchive& archive) {
 			for (const auto& attribute : info.mAttributes) {
 				archive.WriteAndPush(attribute);
 			}
-		});
+			});
 		archive.Write("class", info.mClassName);
+	}
+
+	void WriteVariableMetaInfo(const VariableMetaInfo& info, JsonArchive& archive)
+	{
+		WriteBaseMetaInfo(info, archive);
+
+		archive.Write("type", info.mType);
+		archive.Write("is_static",  info.mIsStaic);
+		archive.Write("is_const",   info.mIsConst);
+		archive.Write("is_pointer", info.mIsPointer);
+	}
+
+	void WriteFunctionMetaInfo(const FunctionMetaInfo& info, JsonArchive& archive)
+	{
+		WriteBaseMetaInfo(info, archive);
+
+		archive.Write("ret_type", info.mRetType);
+		archive.Write("is_ret_const", info.mIsRetConst);
+		archive.Write("is_static", info.mIsStaic);
+		archive.Write("is_const", info.mIsConst);
+
+		archive.PushMap("params", [&info](JsonArchive& archive) {
+			for (const auto& paramMetaInfo : info.mParamTypes)
+			{
+				archive.PushArray([&paramMetaInfo](JsonArchive& archive) {
+					WriteVariableMetaInfo(paramMetaInfo, archive);
+				});
+			}
+		});
 	}
 
 	void WriteClassMetaInfo(const ClassMetaInfo& info, JsonArchive& archive)
 	{
 		WriteBaseMetaInfo(info, archive);
+
+		archive.PushMap("constuctors", [&info](JsonArchive& archive) {
+			for (const auto& funcMetaInfo : info.mConstructors)
+			{
+				archive.PushArray([&funcMetaInfo](JsonArchive& archive) {
+					WriteFunctionMetaInfo(funcMetaInfo, archive);
+				});
+			}
+		});
+
+		archive.PushMap("member_function", [&info](JsonArchive& archive) {
+			for (const auto& funcMetaInfo : info.mMemberFunctions)
+			{
+				archive.PushArray([&funcMetaInfo](JsonArchive& archive) {
+					WriteFunctionMetaInfo(funcMetaInfo, archive);
+				});		
+			}
+		});
+
+		archive.PushMap("member_variables", [&info](JsonArchive& archive) {
+			for (const auto& variableMetaInfo : info.mMemberVariables)
+			{
+				archive.PushArray([&variableMetaInfo](JsonArchive& archive) {
+					WriteVariableMetaInfo(variableMetaInfo, archive);
+				});
+			}
+		});
 	}
 }
 
 bool FilterParser::Parse(const std::string& fileName, const std::string& filterName)
 {
-	std::cout << "Parse file:" << fileName << std::endl;
+	std::cout << "Parsing C++ head file:" << fileName << "..." << std::endl;
 	if (Helper::IsFileExists(filterName))
 	{
 		std::string buffer;
@@ -70,6 +124,7 @@ bool FilterParser::Parse(const std::string& fileName, const std::string& filterN
 
 		return true;
 	}
+	std::cout << "File generation failed" << std::endl;
     return false;
 }
 
@@ -78,17 +133,20 @@ void FilterParser::Generate(const std::string& outputDir, const std::string& out
 	std::string outputFullPath = outputDir;
 	std::string outputFileName = outputName;
 	if (outputName.empty()) {
-		outputFileName = mInputFileName;
+		outputFileName = Helper::RemoveExtension(mInputFileName) + ".json";
 	}
 	outputFullPath = Helper::CombinePath(outputFullPath, outputFileName);
 
-	std::cout << "Generate file:" << outputFullPath << std::endl;
+	char msg[128];
+	sprintf(msg, "File generated successfully:%s", outputFullPath.c_str());
+	std::cout << msg << std::endl;
 
 	JsonArchive archive(outputFullPath, ArchiveMode::ArchiveMode_Write);
 	{
 		for (const auto& kvp : mClassMetaInfoMap)
 		{
 			auto& classMetaInfo = kvp.second;
+			archive.Write("head_name", mInputFileName);
 			archive.PushMap("class", [&classMetaInfo](JsonArchive& archive) {
 				archive.PushArray([&classMetaInfo](JsonArchive& archive)
 				{

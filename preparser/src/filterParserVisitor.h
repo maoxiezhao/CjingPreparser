@@ -26,6 +26,8 @@ public:
 	virtual antlrcpp::Any visitMemberdeclaration(CPP14Parser::MemberdeclarationContext* ctx) override;
 
 private:
-	void FilterParserVisitor::ProcessFunction(FunctionMetaInfo& info, CPP14Parser::DeclaratorContext* ctx, CPP14Parser::DeclSpecifierSeqContext* declSeq);
-	void FilterParserVisitor::ProcessVariable(VariableMetaInfo& info, CPP14Parser::DeclaratorContext* ctx, CPP14Parser::DeclSpecifierSeqContext* declSeq);
+	void ProcessAttribute(BaseMetaInfo& info, CPP14Parser::AttributeSpecifierSeqContext* ctx);
+	void ProcessMemberDeclaratorContext(CPP14Parser::DeclaratorContext* ctx, CPP14Parser::DeclSpecifierSeqContext* declSeq, CPP14Parser::AttributeSpecifierSeqContext* attributeCtx);
+	void ProcessMemberFunction(FunctionMetaInfo& info, CPP14Parser::DeclaratorContext* ctx, CPP14Parser::DeclSpecifierSeqContext* declSeq);
+	void ProcessMemberVariable(VariableMetaInfo& info, CPP14Parser::DeclaratorContext* ctx, CPP14Parser::DeclSpecifierSeqContext* declSeq);
 };

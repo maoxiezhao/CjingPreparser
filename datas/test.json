@@ -1,0 +1,143 @@
+{
+    "class": [
+        {
+            "attributes": [
+                "LUA_BINDER_REGIST",
+                "description(\"Jolly\")"
+            ],
+            "class": "",
+            "constuctors": [
+                {
+                    "attributes": [
+                        "LUA_BINDER_REGIST"
+                    ],
+                    "class": "TransformComponent",
+                    "is_const": false,
+                    "is_ret_const": false,
+                    "is_static": false,
+                    "name": "TransformComponent",
+                    "params": null,
+                    "ret_type": ""
+                }
+            ],
+            "member_function": [
+                {
+                    "attributes": [
+                        "LUA_BINDER_REGIST"
+                    ],
+                    "class": "TransformComponent",
+                    "is_const": false,
+                    "is_ret_const": true,
+                    "is_static": true,
+                    "name": "Create",
+                    "params": [
+                        {
+                            "attributes": null,
+                            "class": "",
+                            "is_const": true,
+                            "is_pointer": true,
+                            "is_static": false,
+                            "name": "name",
+                            "type": "std::string"
+                        }
+                    ],
+                    "ret_type": "int"
+                },
+                {
+                    "attributes": [
+                        "LUA_BINDER_REGIST"
+                    ],
+                    "class": "TransformComponent",
+                    "is_const": true,
+                    "is_ret_const": true,
+                    "is_static": false,
+                    "name": "GetValue",
+                    "params": null,
+                    "ret_type": "int"
+                },
+                {
+                    "attributes": [
+                        "LUA_BINDER_REGIST"
+                    ],
+                    "class": "TransformComponent",
+                    "is_const": false,
+                    "is_ret_const": false,
+                    "is_static": false,
+                    "name": "SetValue",
+                    "params": [
+                        {
+                            "attributes": null,
+                            "class": "",
+                            "is_const": true,
+                            "is_pointer": true,
+                            "is_static": false,
+                            "name": "v",
+                            "type": "int"
+                        }
+                    ],
+                    "ret_type": "void"
+                }
+            ],
+            "member_variables": [
+                {
+                    "attributes": null,
+                    "class": "TransformComponent",
+                    "is_const": false,
+                    "is_pointer": false,
+                    "is_static": false,
+                    "name": "mTranslationLocal",
+                    "type": "XMFLOAT3"
+                },
+                {
+                    "attributes": null,
+                    "class": "TransformComponent",
+                    "is_const": false,
+                    "is_pointer": false,
+                    "is_static": false,
+                    "name": "mRotationLocal",
+                    "type": "XMFLOAT4"
+                },
+                {
+                    "attributes": null,
+                    "class": "TransformComponent",
+                    "is_const": false,
+                    "is_pointer": false,
+                    "is_static": false,
+                    "name": "mScaleLocal",
+                    "type": "XMFLOAT3"
+                },
+                {
+                    "attributes": null,
+                    "class": "TransformComponent",
+                    "is_const": false,
+                    "is_pointer": false,
+                    "is_static": false,
+                    "name": "mWorldTransform",
+                    "type": "XMFLOAT4X4"
+                },
+                {
+                    "attributes": null,
+                    "class": "TransformComponent",
+                    "is_const": false,
+                    "is_pointer": false,
+                    "is_static": false,
+                    "name": "mValue",
+                    "type": "int"
+                },
+                {
+                    "attributes": [
+                        "LUA_BINDER_REGIST"
+                    ],
+                    "class": "TransformComponent",
+                    "is_const": false,
+                    "is_pointer": true,
+                    "is_static": false,
+                    "name": "mIsDirty",
+                    "type": "bool"
+                }
+            ],
+            "name": "TransformComponent"
+        }
+    ],
+    "head_name": "test.h"
+}

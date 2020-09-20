@@ -22,12 +22,14 @@ struct VariableMetaInfo : BaseMetaInfo
 	std::string mType;
 	bool mIsStaic = false;
 	bool mIsConst = false;
+	bool mIsPointer = false;
 };
 
 struct FunctionMetaInfo : BaseMetaInfo
 {
 	std::vector<VariableMetaInfo> mParamTypes;
 	std::string mRetType;
+	bool mIsRetConst = false;
 	bool mIsStaic = false;
 	bool mIsVirtual = false;
 	bool mIsConst = false;
