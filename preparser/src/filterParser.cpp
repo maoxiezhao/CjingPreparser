@@ -6,6 +6,8 @@
 #include "CPP14Parser.h"
 #include "CPP14ParserBaseVisitor.h"
 
+#include <vector>
+
 using namespace antlrcpptest;
 using namespace antlr4;
 
@@ -111,16 +113,31 @@ bool FilterParser::Parse(const std::string& fileName, const std::string& filterN
 		}
 		mInputFileName = fileName;
 
-		ANTLRInputStream input(buffer);
-		CPP14Lexer lexer(&input);
-		CommonTokenStream tokens(&lexer);
+		// check the file with filter
+		bool isAvailable = false;
+		std::vector<std::string> filterArray = mFilterInfo.GetFilterArray();
+		for (const auto& fillter : filterArray)
+		{
+			if (buffer.find(fillter) != std::string::npos)
+			{
+				isAvailable = true;
+				break;
+			}
+		}
 
-		CPP14Parser parser(&tokens);
-		tree::ParseTree* tree = parser.translationUnit();
+		if (isAvailable)
+		{
+			ANTLRInputStream input(buffer);
+			CPP14Lexer lexer(&input);
+			CommonTokenStream tokens(&lexer);
 
-		FilterParserVisitor visitor(*this);
-		tree->accept(&visitor);
-		mClassMetaInfoMap = visitor.GetClassMetaInfoMap();
+			CPP14Parser parser(&tokens);
+			tree::ParseTree* tree = parser.translationUnit();
+
+			FilterParserVisitor visitor(*this);
+			tree->accept(&visitor);
+			mClassMetaInfoMap = visitor.GetClassMetaInfoMap();
+		}
 
 		return true;
 	}

@@ -9,6 +9,16 @@ struct FilterInfo
 	std::string mConstructorFilter = "";
 	std::string mFunctionFilter = "";
 	std::string mVariableFilter = "";
+
+	std::vector<std::string> GetFilterArray()const
+	{
+		return {
+			mClassFilter,
+			mConstructorFilter,
+			mFunctionFilter,
+			mVariableFilter
+		};
+	}
 };
 
 class FilterParser

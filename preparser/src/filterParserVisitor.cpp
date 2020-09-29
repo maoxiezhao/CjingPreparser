@@ -52,7 +52,7 @@ antlrcpp::Any FilterParserVisitor::visitClassHead(CPP14Parser::ClassHeadContext*
 
 		newClassInfo.mName = ctx->classHeadName()->getText();
 	
-		auto baseSpecifierList = ctx->baseClause()->baseSpecifierList();
+		auto baseSpecifierList = ctx->baseClause() ? ctx->baseClause()->baseSpecifierList() : nullptr;
 		if (baseSpecifierList != nullptr)
 		{
 			for (auto baseSpecifier : baseSpecifierList->baseSpecifier()) {
@@ -94,6 +94,13 @@ antlrcpp::Any FilterParserVisitor::visitMemberdeclaration(CPP14Parser::Memberdec
 				ctx->attributeSpecifierSeq());
 		}
 	}
+	else if (ctx->declSpecifierSeq() != nullptr)
+	{
+		ProcessMemberDeclaratorContext(
+			nullptr,
+			ctx->declSpecifierSeq(),
+			ctx->attributeSpecifierSeq());
+	}
 	return nullptr;
 }
 
@@ -102,14 +109,10 @@ void FilterParserVisitor::ProcessMemberDeclaratorContext(
 	CPP14Parser::DeclSpecifierSeqContext* declSeq,
 	CPP14Parser::AttributeSpecifierSeqContext* attributeCtx)
 {
-	if (ctx == nullptr) {
-		return;
-	}
-
 	if (declSeq == nullptr)
 	{
 		// 如果没有类型声明，则仅考虑是否是构造函数
-		auto declString = ctx->getText();
+		auto declString = ctx != nullptr ? ctx->getText() : "";
 		if (declString.find("(") != std::string::npos)
 		{
 			if (declString[0] != '~')
@@ -130,7 +133,7 @@ void FilterParserVisitor::ProcessMemberDeclaratorContext(
 	}
 	else
 	{
-		auto declString = ctx->getText();
+		auto declString = ctx != nullptr ? ctx->getText() : "";
 		if (declString.find("(") != std::string::npos)
 		{
 			// function

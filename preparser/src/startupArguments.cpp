@@ -39,7 +39,7 @@ void StartupArguments::Parse(int argc, const char* argv[])
 				mInputFiles.push_back(argv[fileIndex]);
 				fileIndex++;
 			}
-			i = fileIndex;
+			i = fileIndex - 1;
 		}
 		else if (argCmd == "-od")
 		{
