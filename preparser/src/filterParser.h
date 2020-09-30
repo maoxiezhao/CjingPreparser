@@ -26,6 +26,7 @@ class FilterParser
 public:
 	bool Parse(const std::string& fileName, const std::string& filterName);
 	void Generate(const std::string& outputDir, const std::string& outputName);
+	bool IsEmpty()const;
 
 	const FilterInfo& GetFilterInfo()const { return mFilterInfo; }
 

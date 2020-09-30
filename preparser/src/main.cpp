@@ -17,7 +17,7 @@ int main(int argc, const char* argv[])
 	//	parser.Generate("", "");
 	//}
 
-	const char* test_argv[] = { "hello", "-i", "test.h", "-f", "filter.json" };
+	const char* test_argv[] = { "hello", "-i", "geometry.h", "-f", "filter.json" };
 	StartupArguments arguments;
 	arguments.Parse(5, test_argv);
 

@@ -82,6 +82,12 @@ namespace {
 				});
 			}
 		});
+
+		archive.PushMap("base_class", [&info](JsonArchive& archive) {
+			for (const auto& baseClass : info.mBaseClassNames) {
+				archive.WriteAndPush(baseClass);
+			}
+		});
 	}
 }
 
@@ -125,19 +131,20 @@ bool FilterParser::Parse(const std::string& fileName, const std::string& filterN
 			}
 		}
 
-		if (isAvailable)
-		{
-			ANTLRInputStream input(buffer);
-			CPP14Lexer lexer(&input);
-			CommonTokenStream tokens(&lexer);
-
-			CPP14Parser parser(&tokens);
-			tree::ParseTree* tree = parser.translationUnit();
-
-			FilterParserVisitor visitor(*this);
-			tree->accept(&visitor);
-			mClassMetaInfoMap = visitor.GetClassMetaInfoMap();
+		if (!isAvailable) {
+			return false;
 		}
+
+		ANTLRInputStream input(buffer);
+		CPP14Lexer lexer(&input);
+		CommonTokenStream tokens(&lexer);
+
+		CPP14Parser parser(&tokens);
+		tree::ParseTree* tree = parser.translationUnit();
+
+		FilterParserVisitor visitor(*this);
+		tree->accept(&visitor);
+		mClassMetaInfoMap = visitor.GetClassMetaInfoMap();
 
 		return true;
 	}
@@ -147,6 +154,10 @@ bool FilterParser::Parse(const std::string& fileName, const std::string& filterN
 
 void FilterParser::Generate(const std::string& outputDir, const std::string& outputName)
 {
+	if (IsEmpty()) {
+		return;
+	}
+
 	std::string outputFullPath = outputDir;
 	std::string outputFileName = outputName;
 	if (outputName.empty()) {
@@ -172,4 +183,13 @@ void FilterParser::Generate(const std::string& outputDir, const std::string& out
 			});
 		}
 	}
+}
+
+bool FilterParser::IsEmpty() const
+{
+	if (mClassMetaInfoMap.empty()) {
+		return true;
+	}
+
+	return false;
 }
